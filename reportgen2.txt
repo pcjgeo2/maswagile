@@ -1,0 +1,158 @@
+import sys
+import os
+import simplekml
+from matplotlib import pyplot as plt
+def analisa(file):
+    arquivo=open(file,'r')
+    arquivoler=arquivo.readlines()
+    listaspt2=[]
+    listaz2=[]
+    listaspt5=[]
+    listaz5=[]
+    listaz_t=[]
+    listaspt_t=[]
+    listav5=[]
+    #dict2 ={}
+    #dict5={}
+    statusv="-"
+    for i in range(len(arquivoler)):
+
+        if (len(arquivoler[i].split(','))>1 ):
+           nspt2=int(float(arquivoler[i].split(',')[1]))
+           z2=float(arquivoler[i].split(',')[0])
+           vv=  float(arquivoler[i].split(',')[2])
+           listaz_t.append(z2)
+           listaspt_t.append(nspt2)
+           
+           if (z2<=2):
+              #dict2[z2]=nspt2 
+              listaspt2.append(nspt2)  
+              listaz2.append(z2)
+           if (z2<=5):
+              #dict5[z2]=nspt2 
+    #dictf2 = OrderedDict(sorted(di
+              listaspt5.append(nspt2)  
+              listaz5.append(z2)
+              listav5.append(vv)
+    max2=max(listaspt2)
+    max5=max(listaspt5)
+    plt.figure()
+    ax=plt.subplot(111)
+    ax.plot(listaspt_t,listaz_t)
+    ax.invert_yaxis()
+    ax.set_xlabel('NSPT')
+    ax.set_ylabel("Depth(m)")
+    ax.set_title(str(file.split('_')[0]))
+    ax.grid()
+
+    plt.savefig(str(file.split('_')[0])+"_figure.png")
+    plt.clf()
+    figurenm=str(file.split('_')[0])+"_figure.png"
+    #plt.show()
+    spt2f="-"
+    z2f="-"
+    spt2fmax="-"
+    z2fmax="-"
+    spt5f="-"
+    z5f="-"
+    z5f2="-"
+    status2="-"
+    count2=0
+    v5f="-"
+    zv5=0
+    for i in range(len(listaspt2)):
+        if (listaspt2[i]==max2):
+           print('%s %s %s'%(str(file.split('_')[0]),str(listaspt2[i]),str(listaz2[i])))
+           print(listaspt2)
+           print(listaz2)
+           spt2fmax=str(int(listaspt2[i]))
+           z2fmax=str(round(listaz2[i],2))
+           
+           break
+    
+    for i in range(len(listaspt2)):
+        if (listaspt2[i]>=40):
+           print('%s %s %s'%(str(file.split('_')[0]),str(listaspt2[i]),str(listaz2[i])))
+           print(listaspt2)
+           print(listaz2)
+           spt2f=str(int(listaspt2[i]))
+           z2f=str(round(listaz2[i],2))
+           count2=count2+1
+           break
+    if (count2>0):
+       status2="Rocha Presente"
+    for i in range(len(listaspt5)):
+        if (listaspt5[i]>=40):
+           print('%s %s %s'%(str(file.split('_')[0]),str(listaspt5[i]),str(listaz5[i])))
+           print(listaspt5)
+           print(listaz5)
+           spt5f=str(int(listaspt5[i]))
+           z5f=str(round(float(listaz5[i]),2))
+           break
+    #print(dict(sorted(dict5.items(), key=lambda item: item[1])))     
+    #print(dict2)  
+
+    countv=0
+    for i in range(len(listaspt5)):
+        if (listav5[i]<=180):
+           print('%s %s %s'%(str(file.split('_')[0]),str(listaspt5[i]),str(listaz5[i])))
+           print(listaspt5)
+           print(listaz5)
+           #spt5f=str(int(listaspt5[i]))
+           z5f2=str(round(float(listaz5[i]),2))
+           countv=countv+1
+           break
+    if (countv>0):
+        statusv="Zona friável/ou caverna(%sm)"%(str(z5f2))
+    return  z2f,spt2f,z5f,spt5f,status2,figurenm,max2,max5,z2fmax,statusv
+  
+coord=sys.argv[1]
+coordgeo=sys.argv[2]
+
+
+arquivo=open(coord,'r')
+arquivoler=arquivo.readlines()
+
+arquivo2=open(coordgeo,'r')
+arquivo2ler=arquivo2.readlines()
+
+
+
+os.system('dir /b *.csv >listacsv.txt')
+arquivo3=open('listacsv.txt','r')
+arquivo3ler=arquivo3.readlines()
+kml = simplekml.Kml()
+saida=open('V01_ALEX01_survey_day02.txt','w')
+saida.write('nome,estaca,xgeo,ygeo,coordenadax,coordenaday,Prof Max 2m p Cravacao,SPT Max ate 2m, Prof do SPT Max ate 2m,Rocha dura ate 5m,Formacao Carstica\n')
+for i in range(1,len(arquivoler)):
+    if (len(arquivoler[i].split())>0):
+       ind=(arquivoler[i].split(',')[0]).strip()
+       print(ind)
+       x=(arquivoler[i].split(',')[1]).strip()
+       y=(arquivoler[i].split(',')[2]).strip()
+       xgeo=(arquivo2ler[i].split(',')[1]).strip()
+       ygeo=(arquivo2ler[i].split(',')[2]).strip()
+       ind2=(arquivo2ler[i].split(',')[0]).strip()
+       for j in range(len(arquivo3ler)):
+           if (len(arquivo3ler[j].split(','))>=1):
+              nm=int((arquivo3ler[j].split('_')[0]).strip())
+              if (nm==int(ind)):
+                 z2=analisa(arquivo3ler[j].strip())[0]
+                 #spt2=int(analisa(arquivo3ler[j].strip())[1])
+                 z5=analisa(arquivo3ler[j].strip())[2]
+                 spt5=(analisa(arquivo3ler[j].strip())[3])
+                 status2=analisa(arquivo3ler[j].strip())[4]
+                 figuranm=analisa(arquivo3ler[j].strip())[5]
+                 max2=analisa(arquivo3ler[j].strip())[6]
+                 max5=analisa(arquivo3ler[j].strip())[7]
+                 z2fmax=analisa(arquivo3ler[j].strip())[8]
+                 statusv=analisa(arquivo3ler[j].strip())[9]
+                 point = kml.newpoint(name = str(ind) , coords = [(xgeo,ygeo)])
+                 point.style.iconstyle.icon.href = 'mario.png'
+                 picpath = kml.addfile(figuranm)
+                 point.description = '<img src="' + picpath +'" alt="picture" width="400" height="300" align="left" />'
+                 saida.write('%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'%(str('Alex01'),str(ind),str(xgeo),str(ygeo),str(x),str(y),str(status2),str(max2),str(z2fmax),str(z5)+"("+str(spt5)+"NSPT)",str(statusv)))
+kml.savekmz("ALEX01_survey_day02.kmz", format = False)
+saida.close()                
+
+      
